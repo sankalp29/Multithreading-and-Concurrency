@@ -2,12 +2,16 @@ package com.multithreading;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 public class CompletableFutureExample {
     public static void main(String[] args) {
-        CompletableFuture<String> future1 = CompletableFuture.supplyAsync(
+        ExecutorService executorService =  Executors.newFixedThreadPool(3);
+        for (int i = 0; i < 10; i++) {
+            CompletableFuture<String> future = CompletableFuture.supplyAsync(
             () -> {
                 try {
                     Thread.sleep(3000);
@@ -16,17 +20,20 @@ public class CompletableFutureExample {
                 }
                 return "Done ";
             }
-        ).thenApply(result -> result.concat(result));
+        , executorService).thenApply(result -> result.concat(result));
 
-        try {
-            String result = future1.get(2, TimeUnit.SECONDS);
-            System.out.println(result);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        } catch (TimeoutException e) {
-            System.out.println("This exception occurred : " + e);
+            try {
+                String result = future.get(i, TimeUnit.SECONDS);
+                System.out.println(result);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (TimeoutException e) {
+                System.out.println("This exception occurred : " + e);
+            }   
         }
+
+        executorService.shutdown();
     }
 }
